@@ -10,13 +10,11 @@ public class Station implements Parcelable {
     private final String name;
     private final double latitude;
     private final double longitude;
-    private final int difficulty;
 
-    public Station(String name, double latitude, double longitude, int difficulty) {
+    public Station(String name, double latitude, double longitude) {
         this.name = name;
         this.latitude = latitude;
         this.longitude = longitude;
-        this.difficulty = difficulty;
     }
 
     public String getName() {
@@ -31,21 +29,17 @@ public class Station implements Parcelable {
         return longitude;
     }
 
-    public int getDifficulty() {
-        return difficulty;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Station station = (Station) o;
-        return Double.compare(latitude, station.latitude) == 0 && Double.compare(longitude, station.longitude) == 0 && difficulty == station.difficulty && Objects.equals(name, station.name);
+        return Double.compare(latitude, station.latitude) == 0 && Double.compare(longitude, station.longitude) == 0 && Objects.equals(name, station.name);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, latitude, longitude, difficulty);
+        return Objects.hash(name, latitude, longitude);
     }
 
     // -------- Parcelable implementation --------
@@ -54,7 +48,6 @@ public class Station implements Parcelable {
         name = in.readString();
         latitude = in.readDouble();
         longitude = in.readDouble();
-        difficulty = in.readInt();
     }
 
     @Override
@@ -62,7 +55,6 @@ public class Station implements Parcelable {
         dest.writeString(name);
         dest.writeDouble(latitude);
         dest.writeDouble(longitude);
-        dest.writeInt(difficulty);
     }
 
     @Override
