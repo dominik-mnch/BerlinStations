@@ -33,10 +33,10 @@ public class StationSelector {
     /**
      * Select stations globally distributed with exact quotas per StationType.
      *
-     * @param stations   all available stations
-     * @param bahnCount  number of BAHN stations to select
-     * @param tramCount  number of TRAM stations to select
-     * @param busCount   number of BUS stations to select
+     * @param stations  all available stations
+     * @param bahnCount number of BAHN stations to select
+     * @param tramCount number of TRAM stations to select
+     * @param busCount  number of BUS stations to select
      * @return list of selected stations
      */
     public static ArrayList<Station> selectBalancedStationsGlobally(
@@ -83,9 +83,15 @@ public class StationSelector {
 
             for (StationPoint sp : pts) {
                 switch (sp.getStation().getType()) {
-                    case BAHN: bahns.add(sp);
-                    case TRAM: trams.add(sp);
-                    case BUS: buses.add(sp);
+                    case BAHN:
+                        bahns.add(sp);
+                        break;
+                    case TRAM:
+                        trams.add(sp);
+                        break;
+                    case BUS:
+                        buses.add(sp);
+                        break;
                 }
             }
 
