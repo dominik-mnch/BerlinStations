@@ -16,7 +16,7 @@ public class Main extends AppCompatActivity {
 
     private AutoCompleteTextView autoCompleteTextView;
     private EditText minDistanceEditText, maxDistanceEditText;
-    private EditText minDifficultyEditText, maxDifficultyEditText;
+    private EditText tramWeightEditText, busWeightEditText;
     private EditText numStationsEditText;
     private Button submitButton;
 
@@ -29,14 +29,16 @@ public class Main extends AppCompatActivity {
         autoCompleteTextView = findViewById(R.id.stationAutoComplete);
         minDistanceEditText = findViewById(R.id.minDistanceEditText);
         maxDistanceEditText = findViewById(R.id.maxDistanceEditText);
-        minDifficultyEditText = findViewById(R.id.minDifficultyEditText);
-        maxDifficultyEditText = findViewById(R.id.maxDifficultyEditText);
+        tramWeightEditText = findViewById(R.id.tramWeightEditText);
+        busWeightEditText = findViewById(R.id.busWeightEditText);
         numStationsEditText = findViewById(R.id.numStationsEditText);
         submitButton = findViewById(R.id.submitButton);
 
         // Example stations in London
-        ArrayList<String> stationNames = CsvReader.getTubeStationNames(this);
+        ArrayList<String> stationNames = CsvReader.getBahnStationNames(this);
+        ArrayList<String> tramStationNames = CsvReader.getTramStationNames(this);
         ArrayList<String> busStationNames = CsvReader.getBusStationNames(this);
+        stationNames.addAll(tramStationNames);
         stationNames.addAll(busStationNames);
         Log.d("stationNames", stationNames.toString());
         String[] stations = new String[stationNames.size()];
@@ -50,11 +52,11 @@ public class Main extends AppCompatActivity {
             String station = autoCompleteTextView.getText().toString().trim();
             String minDistanceString = minDistanceEditText.getText().toString();
             String maxDistanceString = maxDistanceEditText.getText().toString();
-            String minDifficultyString = minDifficultyEditText.getText().toString();
-            String maxDifficultyString = maxDifficultyEditText.getText().toString();
+            String tramWeightString = tramWeightEditText.getText().toString();
+            String busWeightString = busWeightEditText.getText().toString();
             String numResultsString = numStationsEditText.getText().toString();
 
-            if (station.isEmpty() || minDistanceString.isEmpty() || minDifficultyString.isEmpty() || numResultsString.isEmpty()) {
+            if (station.isEmpty() || minDistanceString.isEmpty() || numResultsString.isEmpty()) {
                 Toast.makeText(Main.this, "Please fill in required fields", Toast.LENGTH_SHORT).show();
                 return;
             }
@@ -68,29 +70,32 @@ public class Main extends AppCompatActivity {
             if (!maxDistanceString.isEmpty()) {
                 maxDistance = parseDouble(maxDistanceString, "maximum distance");
             }
-            int minDifficulty = parseInt(minDifficultyString, "minimum difficulty");
-            int maxDifficulty = -2;
-            if (!maxDifficultyString.isEmpty()) {
-                maxDifficulty = parseInt(maxDifficultyString, "maximum difficulty");
+            double tramWeight = 0;
+            if (!tramWeightString.isEmpty()) {
+                tramWeight = parseDouble(tramWeightString, "tram weight");
+            }
+            double busWeight = 0;
+            if (!busWeightString.isEmpty()) {
+                busWeight = parseDouble(busWeightString, "bus weight");
             }
             int numStations = parseInt(numResultsString, "number of stations");
 
             //return if any value was invalid
-            if (Double.isNaN(minDistance) || Double.isNaN(maxDistance) || minDifficulty == -1 || maxDifficulty == -1 || numStations == -1) return;
+            if (Double.isNaN(minDistance) || Double.isNaN(maxDistance) || Double.isNaN(tramWeight) || Double.isNaN(busWeight) || numStations == -1)
+                return;
+
+            double bahnWeight = 1.0 - busWeight - tramWeight;
+            if (bahnWeight < 0) {
+                Toast.makeText(Main.this, "Combined bus weight and tram weight is too big!", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
             StationFinder stationFinder;
             //both optionals unset
-            if (maxDistance == -1.0 && maxDifficulty == -2) {
-                stationFinder = new StationFinder(station, minDistance, minDifficulty, numStations);
-            //only maxDifficulty unset
-            } else if (maxDistance != -1.0 && maxDifficulty == -2) {
-                stationFinder = new StationFinder(station, minDistance, maxDistance, minDifficulty, numStations);
-            //only maxDistance unset
-            } else if (maxDistance == -1.0) {
-                stationFinder = new StationFinder(station, minDistance, minDifficulty, maxDifficulty, numStations);
-            //both optionals set
+            if (maxDistance == -1.0) {
+                stationFinder = new StationFinder(station, minDistance, bahnWeight, tramWeight, busWeight, numStations);
             } else {
-                stationFinder = new StationFinder(station, minDistance, maxDistance, minDifficulty, maxDifficulty, numStations);
+                stationFinder = new StationFinder(station, minDistance, maxDistance, bahnWeight, tramWeight, busWeight, numStations);
             }
 
             ArrayList<Station> filteredStations = stationFinder.filterStations(this);
@@ -109,6 +114,10 @@ public class Main extends AppCompatActivity {
             Toast.makeText(Main.this, "Please enter a valid " + fieldName, Toast.LENGTH_SHORT).show();
             return Double.NaN;
         }
+        if (doubleValue < 0) {
+            Toast.makeText(Main.this, "Please enter a valid " + fieldName, Toast.LENGTH_SHORT).show();
+            return Double.NaN;
+        }
         return doubleValue;
     }
 
@@ -117,6 +126,10 @@ public class Main extends AppCompatActivity {
         try {
             intValue = Integer.parseInt(value);
         } catch (NumberFormatException e) {
+            Toast.makeText(Main.this, "Please enter a valid " + fieldName, Toast.LENGTH_SHORT).show();
+            return -1;
+        }
+        if (intValue < 0) {
             Toast.makeText(Main.this, "Please enter a valid " + fieldName, Toast.LENGTH_SHORT).show();
             return -1;
         }
