@@ -12,7 +12,7 @@ public class CsvReader {
     public static ArrayList<Station> getBahnStations(Context context) {
         ArrayList<Station> stations = new ArrayList<>();
 
-        try (InputStream inputStream = context.getResources().openRawResource(R.raw.bahn);
+        try (InputStream inputStream = context.getResources().openRawResource(R.raw.Bahn);
              BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream))) {
 
             String line;
@@ -36,7 +36,7 @@ public class CsvReader {
     public static ArrayList<String> getBahnStationNames(Context context) {
         ArrayList<String> stationNames = new ArrayList<>();
 
-        try (InputStream inputStream = context.getResources().openRawResource(R.raw.bahn);
+        try (InputStream inputStream = context.getResources().openRawResource(R.raw.Bahn);
              BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream))) {
 
             String line;
@@ -57,7 +57,7 @@ public class CsvReader {
     public static ArrayList<Station> getTramStations(Context context) {
         ArrayList<Station> stations = new ArrayList<>();
 
-        try (InputStream inputStream = context.getResources().openRawResource(R.raw.tram);
+        try (InputStream inputStream = context.getResources().openRawResource(R.raw.Tram);
              BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream))) {
 
             String line;
@@ -81,7 +81,7 @@ public class CsvReader {
     public static ArrayList<String> getTramStationNames(Context context) {
         ArrayList<String> stationNames = new ArrayList<>();
 
-        try (InputStream inputStream = context.getResources().openRawResource(R.raw.tram);
+        try (InputStream inputStream = context.getResources().openRawResource(R.raw.Tram);
              BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream))) {
 
             String line;
@@ -102,7 +102,7 @@ public class CsvReader {
     public static ArrayList<Station> getBusStations(Context context) {
         ArrayList<Station> stations = new ArrayList<>();
 
-        try (InputStream inputStream = context.getResources().openRawResource(R.raw.bus);
+        try (InputStream inputStream = context.getResources().openRawResource(R.raw.Bus);
              BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream))) {
 
             String line;
@@ -126,7 +126,7 @@ public class CsvReader {
     public static ArrayList<String> getBusStationNames(Context context) {
         ArrayList<String> stationNames = new ArrayList<>();
 
-        try (InputStream inputStream = context.getResources().openRawResource(R.raw.bus);
+        try (InputStream inputStream = context.getResources().openRawResource(R.raw.Bus);
              BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream))) {
 
             String line;
