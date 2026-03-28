@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:app="http://schemas.android.com/apk/res-auto"
-            xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+            xmlns:tools="http://schemas.android.com/tools"
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="#FAFAFA">
 
@@ -25,7 +26,6 @@
                     android:orientation="vertical"
                     android:padding="16dp">
 
-                <!-- Label above the input -->
                 <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -34,7 +34,6 @@
                         android:textStyle="bold"
                         android:layout_marginBottom="4dp"/>
 
-                <!-- AutoCompleteTextView without TextInputLayout -->
                 <AutoCompleteTextView
                         android:id="@+id/stationAutoComplete"
                         android:layout_width="match_parent"
@@ -86,7 +85,7 @@
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-        <!-- Card for Difficulty -->
+        <!-- Card for Weighted Values -->
         <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -100,28 +99,39 @@
                     android:orientation="vertical"
                     android:padding="16dp">
 
+                <!-- Bus Weight -->
                 <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Difficulty (0 - 46)"
+                        android:text="Bus Station Weight (0 - 1)"
                         android:textSize="16sp"
                         android:textStyle="bold"/>
 
                 <EditText
-                        android:id="@+id/minDifficultyEditText"
+                        android:id="@+id/busWeightEditText"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="Minimum"
-                        android:inputType="number"
+                        android:hint="e.g., 0.5"
+                        android:inputType="numberDecimal"
                         android:layout_marginTop="8dp"/>
 
+                <!-- Tram Weight -->
+                <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Tram Station Weight (0 - 1)"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:layout_marginTop="16dp"/>
+
                 <EditText
-                        android:id="@+id/maxDifficultyEditText"
+                        android:id="@+id/tramWeightEditText"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="Maximum (optional)"
-                        android:inputType="number"
+                        android:hint="e.g., 0.5"
+                        android:inputType="numberDecimal"
                         android:layout_marginTop="8dp"/>
+
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
