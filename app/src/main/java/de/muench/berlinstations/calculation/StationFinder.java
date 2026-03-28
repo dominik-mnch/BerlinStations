@@ -36,9 +36,7 @@ public class StationFinder {
     }
 
     public ArrayList<Station> filterStations(Context context) {
-        ArrayList<Station> bahnStations = CsvReader.getBahnStations(context);
-        ArrayList<Station> tramStations = CsvReader.getTramStations(context);
-        ArrayList<Station> busStations = CsvReader.getBusStations(context);
+        ArrayList<Station> stations = new ArrayList<>(CsvReader.getStations(context));
 
         int bahnCount = 0;
         int tramCount = 0;
@@ -58,18 +56,11 @@ public class StationFinder {
             }
         }
 
-        ArrayList<Station> allStations = new ArrayList<>();
-        allStations.addAll(bahnStations);
-        allStations.addAll(tramStations);
-        allStations.addAll(busStations);
+        Station startStation = getStationByName(stations, startingStation);
 
-        Station startStation = getStationByName(allStations, startingStation);
+        ArrayList<Station> filteredStations = new ArrayList<>(filterStations(stations, startStation));
 
-        ArrayList<Station> filteredBahnStations = new ArrayList<>(filterStations(bahnStations, startStation));
-        ArrayList<Station> filteredTramStations = new ArrayList<>(filterStations(tramStations, startStation));
-        ArrayList<Station> filteredBusStations = new ArrayList<>(filterStations(busStations, startStation));
-
-        return StationSelector.selectBalancedStationsGlobally(filteredBahnStations, bahnCount, filteredTramStations, tramCount, filteredBusStations, busCount);
+        return StationSelector.selectBalancedStationsGlobally(filteredStations, bahnCount, tramCount, busCount);
     }
 
     private ArrayList<Station> filterStations(ArrayList<Station> stations, Station startingStation) {

@@ -35,11 +35,7 @@ public class Main extends AppCompatActivity {
         submitButton = findViewById(R.id.submitButton);
 
         // Example stations in London
-        ArrayList<String> stationNames = CsvReader.getBahnStationNames(this);
-        ArrayList<String> tramStationNames = CsvReader.getTramStationNames(this);
-        ArrayList<String> busStationNames = CsvReader.getBusStationNames(this);
-        stationNames.addAll(tramStationNames);
-        stationNames.addAll(busStationNames);
+        ArrayList<String> stationNames = CsvReader.getStationNames(this);
         Log.d("stationNames", stationNames.toString());
         String[] stations = new String[stationNames.size()];
         stations = stationNames.toArray(stations);
