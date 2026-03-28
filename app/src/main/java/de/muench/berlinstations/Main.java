@@ -84,8 +84,7 @@ public class Main extends AppCompatActivity {
             if (Double.isNaN(minDistance) || Double.isNaN(maxDistance) || Double.isNaN(tramWeight) || Double.isNaN(busWeight) || numStations == -1)
                 return;
 
-            double bahnWeight = 1.0 - busWeight - tramWeight;
-            if (bahnWeight < 0) {
+            if (Double.compare(tramWeight + busWeight, 1) > 0) {
                 Toast.makeText(Main.this, "Combined bus weight and tram weight is too big!", Toast.LENGTH_SHORT).show();
                 return;
             }
@@ -93,9 +92,9 @@ public class Main extends AppCompatActivity {
             StationFinder stationFinder;
             //both optionals unset
             if (maxDistance == -1.0) {
-                stationFinder = new StationFinder(station, minDistance, bahnWeight, tramWeight, busWeight, numStations);
+                stationFinder = new StationFinder(station, minDistance, tramWeight, busWeight, numStations);
             } else {
-                stationFinder = new StationFinder(station, minDistance, maxDistance, bahnWeight, tramWeight, busWeight, numStations);
+                stationFinder = new StationFinder(station, minDistance, maxDistance, tramWeight, busWeight, numStations);
             }
 
             ArrayList<Station> filteredStations = stationFinder.filterStations(this);

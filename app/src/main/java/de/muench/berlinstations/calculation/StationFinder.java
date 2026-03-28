@@ -6,72 +6,70 @@ import de.muench.berlinstations.util.DistanceCalculator;
 import de.muench.berlinstations.util.CsvReader;
 
 import java.util.ArrayList;
+import java.util.Random;
 
 public class StationFinder {
 
     private final String startingStation;
     private final double minDistance;
     private final double maxDistance;
-    private final int minDifficulty;
-    private final int maxDifficulty;
+    private final double tramWeight;
+    private final double busWeight;
     private final int numResults;
 
-    public StationFinder(String startingStation, double minDistance, int minDifficulty, int numResults) {
+    public StationFinder(String startingStation, double minDistance, double tramWeight, double busWeight, int numResults) {
         this.startingStation = startingStation;
         this.minDistance = minDistance;
         this.maxDistance = Double.POSITIVE_INFINITY;
-        this.minDifficulty = minDifficulty;
-        this.maxDifficulty = Integer.MAX_VALUE;
+        this.tramWeight = tramWeight;
+        this.busWeight = busWeight;
         this.numResults = numResults;
     }
 
-    public StationFinder(String startingStation, double minDistance, double maxDistance, int minDifficulty, int numResults) {
+    public StationFinder(String startingStation, double minDistance, double maxDistance, double tramWeight, double busWeight, int numResults) {
         this.startingStation = startingStation;
         this.minDistance = minDistance;
         this.maxDistance = maxDistance;
-        this.minDifficulty = minDifficulty;
-        this.maxDifficulty = Integer.MAX_VALUE;
-        this.numResults = numResults;
-    }
-
-    public StationFinder(String startingStation, double minDistance, int minDifficulty, int maxDifficulty, int numResults) {
-        this.startingStation = startingStation;
-        this.minDistance = minDistance;
-        this.maxDistance = Double.POSITIVE_INFINITY;
-        this.minDifficulty = minDifficulty;
-        this.maxDifficulty = maxDifficulty;
-        this.numResults = numResults;
-    }
-
-    public StationFinder(String startingStation, double minDistance, double maxDistance, int minDifficulty, int maxDifficulty, int numResults) {
-        this.startingStation = startingStation;
-        this.minDistance = minDistance;
-        this.maxDistance = maxDistance;
-        this.minDifficulty = minDifficulty;
-        this.maxDifficulty = maxDifficulty;
+        this.tramWeight = tramWeight;
+        this.busWeight = busWeight;
         this.numResults = numResults;
     }
 
     public ArrayList<Station> filterStations(Context context) {
-        ArrayList<Station> tubeStations = CsvReader.getTubeStations(context);
+        ArrayList<Station> bahnStations = CsvReader.getBahnStations(context);
+        ArrayList<Station> tramStations = CsvReader.getTramStations(context);
         ArrayList<Station> busStations = CsvReader.getBusStations(context);
-        ArrayList<Station> allStations = new ArrayList<>(tubeStations);
-        allStations.addAll(busStations);
 
-        Station startingStation = getStationByName(allStations, this.startingStation);
+        int bahnCount = 0;
+        int tramCount = 0;
+        int busCount = 0;
 
-        //bus stations excluded
-        if (minDifficulty > 0) {
-            return StationSelector.selectBalancedStations(filterStations(tubeStations, startingStation), numResults);
+        Random random = new Random();
+
+        for (int i = 0; i < numResults; i++) {
+            double r = random.nextDouble();
+
+            if (Double.compare(r, tramWeight) < 0) {
+                tramCount++;
+            } else if (Double.compare(r, tramWeight + busWeight) < 0) {
+                busCount++;
+            } else {
+                bahnCount++;
+            }
         }
 
-        ArrayList<Station> filteredTubeStations = filterStations(tubeStations, startingStation);
-        ArrayList<Station> filteredBusStations = filterStations(busStations, startingStation);
+        ArrayList<Station> allStations = new ArrayList<>();
+        allStations.addAll(bahnStations);
+        allStations.addAll(tramStations);
+        allStations.addAll(busStations);
 
-        ArrayList<Station> selectedTubeStations = StationSelector.selectBalancedStations(filteredTubeStations, (int) Math.ceil(numResults/2.0));
-        ArrayList<Station> selectedBusStations = StationSelector.selectBalancedStations(filteredBusStations, (int) Math.floor(numResults/2.0));
-        selectedTubeStations.addAll(selectedBusStations);
-        return selectedTubeStations;
+        Station startStation = getStationByName(allStations, startingStation);
+
+        ArrayList<Station> filteredBahnStations = new ArrayList<>(filterStations(bahnStations, startStation));
+        ArrayList<Station> filteredTramStations = new ArrayList<>(filterStations(tramStations, startStation));
+        ArrayList<Station> filteredBusStations = new ArrayList<>(filterStations(busStations, startStation));
+
+        return StationSelector.selectBalancedStationsGlobally(filteredBahnStations, bahnCount, filteredTramStations, tramCount, filteredBusStations, busCount);
     }
 
     private ArrayList<Station> filterStations(ArrayList<Station> stations, Station startingStation) {
@@ -79,13 +77,8 @@ public class StationFinder {
         for (Station station : stations) {
             if (station.equals(startingStation)) continue;
 
-            if (station.getDifficulty() < minDifficulty) continue;
-            if (station.getDifficulty() > maxDifficulty) continue;
-
-            //Log.d("Distance", "Calculating " + station.getName());
             double distance = DistanceCalculator.calculateDistanceKm(startingStation.getLatitude(), startingStation.getLongitude(),
                     station.getLatitude(), station.getLongitude());
-            //Log.d("Distance", "Calculated distance: " + distance);
 
             if (distance < minDistance) continue;
             if (distance > maxDistance) continue;
