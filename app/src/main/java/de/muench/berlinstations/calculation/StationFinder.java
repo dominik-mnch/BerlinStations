@@ -97,8 +97,8 @@ public class StationFinder {
             double distance = DistanceCalculator.calculateDistanceKm(startingStation.getLatitude(), startingStation.getLongitude(),
                     station.getLatitude(), station.getLongitude());
 
-            //disregard stations that are further than min distance
-            if (distance > minDistance) continue;
+            //disregard stations that are further than 2km
+            if (Double.compare(distance, 2.0) > 0) continue;
 
             filteredStations.add(station);
         }
