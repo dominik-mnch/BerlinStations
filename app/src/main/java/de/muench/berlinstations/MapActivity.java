@@ -1,11 +1,8 @@
 package de.muench.berlinstations;
 
+import android.graphics.*;
 import android.graphics.drawable.BitmapDrawable;
 import androidx.appcompat.app.AppCompatActivity;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
 import android.os.Bundle;
 import android.os.Environment;
 import android.widget.Button;
@@ -24,7 +21,6 @@ import java.util.ArrayList;
 public class MapActivity extends AppCompatActivity {
 
     private MapView mapView;
-    private ArrayList<Station> stations;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,43 +32,37 @@ public class MapActivity extends AppCompatActivity {
         mapView.setMultiTouchControls(true);
         mapView.getController().setZoom(12.0);
 
-        // Receive filtered stations
-        stations = getIntent().getParcelableArrayListExtra("filteredStations");
+        ArrayList<Station> stations = getIntent().getParcelableArrayListExtra("filteredStations");
 
         if (stations != null && !stations.isEmpty()) {
-            // Center on first station
+
             mapView.getController().setCenter(
                     new GeoPoint(stations.get(0).getLatitude(), stations.get(0).getLongitude()));
 
             int index = 1;
             for (Station s : stations) {
+
                 GeoPoint point = new GeoPoint(s.getLatitude(), s.getLongitude());
                 Marker marker = new Marker(mapView);
                 marker.setPosition(point);
 
-                // Determine color based on StationType
+                // Color by station type
                 int color;
                 switch (s.getType()) {
-                    case BAHN:
-                        color = Color.BLUE;
-                        break;
-                    case TRAM:
-                        color = Color.GREEN;
-                        break;
-                    case BUS:
-                        color = Color.RED;
-                        break;
-                    default:
-                        color = Color.GRAY;
-                        break;
+                    case BAHN: color = Color.BLUE; break;
+                    case TRAM: color = Color.GREEN; break;
+                    case BUS:  color = Color.RED; break;
+                    default:   color = Color.GRAY; break;
                 }
 
-                // Set numbered marker with label and color
+                // Shape condition: name ends with "(30min)"
+                boolean isSquare = s.getName().trim().endsWith("(30min)");
+
                 marker.setIcon(new BitmapDrawable(getResources(),
-                        createNumberedMarkerWithLabel(index, s.getName(), color)));
+                        createNumberedMarkerWithLabel(index, s.getName(), color, isSquare)));
+
                 marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER);
                 marker.setTitle(s.getName());
-
                 mapView.getOverlays().add(marker);
                 index++;
             }
@@ -82,56 +72,73 @@ public class MapActivity extends AppCompatActivity {
         saveButton.setOnClickListener(v -> saveMapSnapshot());
     }
 
-    // Create a bigger marker bitmap with number, label, and custom circle color
-    private Bitmap createNumberedMarkerWithLabel(int number, String name, int circleColor) {
+    private Bitmap createNumberedMarkerWithLabel(int number, String name, int color, boolean isDiamond) {
         int width = 200;
         int height = 200;
-        int circleDiameter = height / 3;
-        int circleRadius = circleDiameter / 2;
+        int shapeSize = height / 3;
+        int shapeCenterX = width / 2;
+        int shapeCenterY = shapeSize / 2 + 10;
 
         Bitmap bmp = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bmp);
         Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        paint.setColor(color);
 
-        // Circle background
-        paint.setColor(circleColor);
-        canvas.drawCircle(width / 2f, circleRadius + 10, circleRadius, paint);
+        if (isDiamond) {
+            // --- Draw DIAMOND shape ---
+            Path diamond = new Path();
+            diamond.moveTo(shapeCenterX, shapeCenterY - shapeSize / 2f);        // top
+            diamond.lineTo(shapeCenterX + shapeSize / 2f, shapeCenterY);        // right
+            diamond.lineTo(shapeCenterX, shapeCenterY + shapeSize / 2f);        // bottom
+            diamond.lineTo(shapeCenterX - shapeSize / 2f, shapeCenterY);        // left
+            diamond.close();
 
-        // Number inside circle
+            canvas.drawPath(diamond, paint);
+        } else {
+            // --- Draw CIRCLE (normal stations) ---
+            canvas.drawCircle(shapeCenterX, shapeCenterY, shapeSize / 2f, paint);
+        }
+
+        // Draw number inside the shape
         paint.setColor(Color.WHITE);
         paint.setTextSize(35);
         paint.setTextAlign(Paint.Align.CENTER);
-        Paint.FontMetrics fm = paint.getFontMetrics();
-        float yNumber = circleRadius + 10 - (fm.ascent + fm.descent) / 2;
-        canvas.drawText(String.valueOf(number), width / 2f, yNumber, paint);
 
-        // Station name below circle
+        Paint.FontMetrics fm = paint.getFontMetrics();
+        float yNumber = shapeCenterY - (fm.ascent + fm.descent) / 2;
+        canvas.drawText(String.valueOf(number), shapeCenterX, yNumber, paint);
+
+        // Draw station name below
         paint.setColor(Color.BLACK);
         paint.setTextSize(28);
         float extraSpace = 20;
-        drawMultilineText(canvas, paint, name, width / 2f, circleRadius * 2 + 10, width - 20, extraSpace);
+        drawMultilineText(canvas, paint, name, width / 2f, shapeSize * 2 + 10, width - 20, extraSpace);
 
         return bmp;
     }
 
-    private void drawMultilineText(Canvas canvas, Paint paint, String text, float x, float startY, int maxWidth, float offsetBelowCircle) {
+
+    private void drawMultilineText(Canvas canvas, Paint paint, String text, float x,
+                                   float startY, int maxWidth, float offset) {
+
         String[] words = text.split(" ");
         StringBuilder line = new StringBuilder();
         float lineHeight = -paint.ascent() + paint.descent();
-        float yOffset = startY + offsetBelowCircle;
+        float y = startY + offset;
 
         for (String word : words) {
-            String testLine = line.length() == 0 ? word : line + " " + word;
+            String testLine = (line.length() == 0 ? word : line + " " + word);
             if (paint.measureText(testLine) > maxWidth) {
-                canvas.drawText(line.toString(), x, yOffset, paint);
-                yOffset += lineHeight;
+                canvas.drawText(line.toString(), x, y, paint);
+                y += lineHeight;
                 line = new StringBuilder(word);
             } else {
                 line = new StringBuilder(testLine);
             }
         }
-        canvas.drawText(line.toString(), x, yOffset, paint);
+        canvas.drawText(line.toString(), x, y, paint);
     }
+
 
     private void saveMapSnapshot() {
         try {

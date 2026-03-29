@@ -6,6 +6,7 @@ import de.muench.berlinstations.util.DistanceCalculator;
 import de.muench.berlinstations.util.CsvReader;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Random;
 
 public class StationFinder {
@@ -41,11 +42,18 @@ public class StationFinder {
         int bahnCount = 0;
         int tramCount = 0;
         int busCount = 0;
+        int timeBoundStationCount = 0;
 
         Random random = new Random();
 
         for (int i = 0; i < numResults; i++) {
             double r = random.nextDouble();
+
+            //first check if it is 30min station
+            if (Double.compare(r, 0.05) < 0) {
+                timeBoundStationCount++;
+                continue;
+            }
 
             if (Double.compare(r, tramWeight) < 0) {
                 tramCount++;
@@ -60,9 +68,45 @@ public class StationFinder {
 
         ArrayList<Station> filteredStations = new ArrayList<>(filterStations(stations, startStation));
 
-        return StationSelector.selectBalancedStationsGlobally(filteredStations, bahnCount, tramCount, busCount);
+        ArrayList<Station> regularStations = StationSelector.selectBalancedStationsGlobally(filteredStations, bahnCount, tramCount, busCount);
+
+        ArrayList<Station> result = modifyNameForTimeBoundStations(selectTimeBoundStations(getCloserStations(stations, startStation), timeBoundStationCount));
+
+        result.addAll(regularStations);
+
+        return result;
     }
 
+    //select time bound stations after
+    private ArrayList<Station> selectTimeBoundStations(ArrayList<Station> stations, int timeBoundStationsCount) {
+        ArrayList<Station> copy = new ArrayList<>(stations);
+
+        Collections.shuffle(copy);
+
+        int limit = Math.min(timeBoundStationsCount, copy.size());
+
+        return new ArrayList<>(copy.subList(0, limit));
+    }
+
+    //returns stations that are closer to the starting station than min distance
+    private ArrayList<Station> getCloserStations(ArrayList<Station> stations, Station startingStation) {
+        ArrayList<Station> filteredStations = new ArrayList<>();
+        for (Station station : stations) {
+            if (station.equals(startingStation)) continue;
+
+            double distance = DistanceCalculator.calculateDistanceKm(startingStation.getLatitude(), startingStation.getLongitude(),
+                    station.getLatitude(), station.getLongitude());
+
+            //disregard stations that are further than min distance
+            if (distance > minDistance) continue;
+
+            filteredStations.add(station);
+        }
+
+        return filteredStations;
+    }
+
+    //returns stations the correct distance away
     private ArrayList<Station> filterStations(ArrayList<Station> stations, Station startingStation) {
         ArrayList<Station> filteredStations = new ArrayList<>();
         for (Station station : stations) {
@@ -87,5 +131,14 @@ public class StationFinder {
             }
         }
         return null;
+    }
+
+    private ArrayList<Station> modifyNameForTimeBoundStations(ArrayList<Station> timeBoundStations) {
+        ArrayList<Station> copy = new ArrayList<>(timeBoundStations);
+        for (Station station : copy) {
+            station.setName(station.getName() + " (30min)");
+        }
+
+        return copy;
     }
 }

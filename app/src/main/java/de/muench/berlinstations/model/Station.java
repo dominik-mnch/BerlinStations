@@ -6,7 +6,7 @@ import android.os.Parcelable;
 import java.util.Objects;
 
 public class Station implements Parcelable {
-    private final String name;
+    private String name;
     private final StationType type;
     private final double latitude;
     private final double longitude;
@@ -20,6 +20,10 @@ public class Station implements Parcelable {
 
     public String getName() {
         return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public StationType getType() {
